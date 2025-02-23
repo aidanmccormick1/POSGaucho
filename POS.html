@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Food & Merch POS</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f0f8ff;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #007bff;
+      text-align: center;
+    }
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+    }
+    .item-card {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .item-card:hover {
+      transform: translateY(-3px);
+    }
+    .item-card img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+    #cart {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+    }
+    select {
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid #007bff;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🍔 Food & Merch POS 🧃</h1>
+    
+    <!-- Item Grid -->
+    <div class="items-grid" id="items"></div>
+    
+    <!-- Cart -->
+    <div id="cart">
+      <h2>Cart</h2>
+      <div id="cart-items"></div>
+      <p>Total: $<span id="total">0.00</span></p>
+      <input type="text" id="customerName" placeholder="Customer Name">
+      <select id="paymentType">
+        <option value="Cash">Cash</option>
+        <option value="Card">Card</option>
+        <option value="Venmo">Venmo</option>
+      </select>
+      <button onclick="completeOrder()">Complete Order</button>
+    </div>
+  </div>
+
+  <script>
+    // Item List (Update prices as needed)
+    const items = [
+      { name: "Hamburger", price: 5.00, image: "https://via.placeholder.com/100?text=🍔" },
+      { name: "Hot Dog", price: 3.00, image: "https://via.placeholder.com/100?text=🌭" },
+      { name: "Water", price: 1.00, image: "https://via.placeholder.com/100?text=💧" },
+      { name: "Sprite", price: 2.00, image: "https://via.placeholder.com/100?text=🥤" },
+      { name: "Diet Coke", price: 2.00, image: "https://via.placeholder.com/100?text=🥤" },
+      { name: "Gatorade", price: 2.50, image: "https://via.placeholder.com/100?text=🧃" },
+      { name: "T-Shirt", price: 15.00, image: "https://via.placeholder.com/100?text=👕" }
+    ];
+
+    // Initialize Cart
+    let cart = [];
+    const itemsGrid = document.getElementById('items');
+    
+    // Load Items
+    items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'item-card';
+      card.innerHTML = `
+        <img src="${item.image}" alt="${item.name}">
+        <h3>${item.name}</h3>
+        <p>$${item.price.toFixed(2)}</p>
+        <select class="quantity" id="qty-${item.name}">
+          ${Array.from({length: 10}, (_, i) => `<option>${i + 1}</option>`)}
+        </select>
+      `;
+      card.onclick = () => addToCart(item);
+      itemsGrid.appendChild(card);
+    });
+
+    // Add to Cart
+    function addToCart(item) {
+      const qty = parseInt(document.getElementById(`qty-${item.name}`).value);
+      cart.push({ ...item, qty });
+      updateCart();
+    }
+
+    // Update Cart Display
+    function updateCart() {
+      const cartItems = document.getElementById('cart-items');
+      const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      cartItems.innerHTML = cart.map(item => `
+        <div class="cart-item">
+          <span>${item.name} x${item.qty}</span>
+          <span>$${(item.price * item.qty).toFixed(2)}</span>
+        </div>
+      `).join('');
+      document.getElementById('total').textContent = total.toFixed(2);
+    }
+
+    // Complete Order (Send to Google Sheets)
+    async function completeOrder() {
+      const WEB_APP_URL = "YOUR_GOOGLE_SCRIPT_WEB_APP_URL"; // Replace this!
+      const customerName = document.getElementById('customerName').value;
+      const paymentType = document.getElementById('paymentType').value;
+
+      const data = {
+        customerName,
+        paymentType,
+        total: parseFloat(document.getElementById('total').textContent),
+        items: cart.map(item => `${item.name} x${item.qty}`)
+      };
+
+      try {
+        await fetch(WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+        alert("Order saved to Google Sheets!");
+        cart = [];
+        updateCart();
+        document.getElementById('customerName').value = "";
+      } catch (err) {
+        alert("Error saving order.");
+      }
+    }
+  </script>
+</body>
+</html>

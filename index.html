@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Food & Merch POS 10000</title>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food & Merch POS</title>
   <style>
     :root { --primary: #007bff; }
     body {
@@ -74,13 +75,13 @@
 </head>
 <body>
   <div class="container">
-    <h1>🍔 Food & Merch POS 🧋</h1>
+    <h1>Food & Merch POS 1000</h1>
     <div class="items-grid" id="items"></div>
     <div id="cart">
       <h2>🛒 Cart</h2>
       <div id="cart-items"></div>
       <p>Total: $<span id="total">0.00</span></p>
-      <input type="text" id="customerName" placeholder="Customer Name">
+      <input type="text" id="customerName" placeholder="Customer Name" required>
       <select id="paymentType">
         <option value="Cash">Cash</option>
         <option value="Card">Card</option>
@@ -89,6 +90,7 @@
       <button onclick="completeOrder()">Complete Order</button>
     </div>
   </div>
+
   <script>
     const products = [
       { name: "Hamburger", price: 5.00, image: "https://cdn-icons-png.flaticon.com/512/5787/5787016.png" },
@@ -115,29 +117,41 @@
       item.onclick = () => addToCart(product);
       itemsGrid.appendChild(item);
     });
+
     function addToCart(product) {
       const qty = parseInt(event.target.closest('.item-card').querySelector('select').value);
       cart.push({ ...product, qty });
       updateCart();
     }
+
     function updateCart() {
       const cartItems = document.getElementById('cart-items');
       const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
       cartItems.innerHTML = cart.map(item => `<div class="cart-item"><span>${item.name} x${item.qty}</span><span>$${(item.price * item.qty).toFixed(2)}</span></div>`).join('');
       document.getElementById('total').textContent = total.toFixed(2);
     }
+
     function completeOrder() {
       const customerName = document.getElementById('customerName').value;
       if (!customerName) {
         alert("Please enter a customer name!");
         return;
       }
+
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = "https://script.google.com/macros/s/AKfycbymbWR2MVfDKqKC6mgSikZ-NW0wAE0-FG1t_tXXQP7-KhC_3lpHY7kusvEPYQn01XhC/exec";
-      form.innerHTML = `<input type='hidden' name='customerName' value='${customerName}'>`;
+
+      // Add form data
+      form.innerHTML = `
+        <input type='hidden' name='customerName' value='${customerName}'>
+        <input type='hidden' name='cart' value='${JSON.stringify(cart)}'>
+        <input type='hidden' name='total' value='${document.getElementById('total').textContent}'>
+        <input type='hidden' name='paymentType' value='${document.getElementById('paymentType').value}'>
+      `;
+
       document.body.appendChild(form);
-      form.submit();
+      form.submit(); // Submitting form
     }
   </script>
 </body>

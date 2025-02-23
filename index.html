@@ -102,7 +102,6 @@
   </div>
 
   <script>
-    // Products (Update prices/images as needed)
     const products = [
       { name: "Hamburger", price: 5.00, image: "https://cdn-icons-png.flaticon.com/512/5787/5787016.png" },
       { name: "Hot Dog", price: 3.00, image: "https://cdn-icons-png.flaticon.com/512/2718/2718274.png" },
@@ -116,7 +115,6 @@
     let cart = [];
     const itemsGrid = document.getElementById('items');
 
-    // Load Products
     products.forEach(product => {
       const item = document.createElement('div');
       item.className = 'item-card';
@@ -125,21 +123,19 @@
         <h3>${product.name}</h3>
         <p>$${product.price.toFixed(2)}</p>
         <select class="quantity">
-          ${Array.from({ length: 10 }, (_, i) => `<option>${i + 1}</option>`)}
+          ${Array.from({ length: 10 }, (_, i) => `<option>${i + 1}</option>`).join('')}
         </select>
       `;
-      item.onclick = () => addToCart(product);
+      item.onclick = (event) => addToCart(product, event);
       itemsGrid.appendChild(item);
     });
 
-    // Add to Cart
-    function addToCart(product) {
+    function addToCart(product, event) {
       const qty = parseInt(event.target.closest('.item-card').querySelector('select').value);
       cart.push({ ...product, qty });
       updateCart();
     }
 
-    // Update Cart Display
     function updateCart() {
       const cartItems = document.getElementById('cart-items');
       const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
@@ -152,46 +148,33 @@
       document.getElementById('total').textContent = total.toFixed(2);
     }
 
-    // Complete Order
     async function completeOrder() {
-      const PROXY_URL = "https://cors-anywhere.herokuapp.com/"; // Proxy to bypass CORS
-      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbymbWR2MVfDKqKC6mgSikZ-NW0wAE0-FG1t_tXXQP7-KhC_3lpHY7kusvEPYQn01XhC/exec"; // Your Google Apps Script URL
+      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbymbWR2MVfDKqKC6mgSikZ-NW0wAE0-FG1t_tXXQP7-KhC_3lpHY7kusvEPYQn01XhC/exec";
       const customerName = document.getElementById('customerName').value;
-
-      // Validate customer name
       if (!customerName) {
         alert("Please enter a customer name!");
         return;
       }
-
-      // Prepare data to send
       const data = {
-        customerName: customerName,
+        customerName,
         paymentType: document.getElementById('paymentType').value,
         total: parseFloat(document.getElementById('total').textContent),
         items: cart.map(item => `${item.name} x${item.qty}`)
       };
-
       try {
-        // Send data to Google Apps Script via proxy
-        const response = await fetch(PROXY_URL + WEB_APP_URL, {
+        const response = await fetch(WEB_APP_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
-
-        // Handle response
         if (response.ok) {
           alert("Order saved to Google Sheets! ✅");
-          cart = []; // Clear cart
-          updateCart(); // Update UI
-          document.getElementById('customerName').value = ""; // Reset customer name
-        } else {
-          console.error("Response not OK:", await response.text());
+          cart = [];
+          updateCart();
+          document.getElementById('customerName').value = "";
         }
       } catch (error) {
-        console.error("Error:", error);
-        alert("Error saving order. Check console for details.");
+        alert("Error saving order. Check console.");
       }
     }
   </script>

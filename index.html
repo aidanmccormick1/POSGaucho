@@ -75,7 +75,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Food & Merch POS 1000</h1>
+    <h1> Food & Merch POS 69</h1>
     <div class="items-grid" id="items"></div>
     <div id="cart">
       <h2>🛒 Cart</h2>
@@ -138,6 +138,9 @@
         return;
       }
 
+      // URL encode the cart data
+      const encodedCart = encodeURIComponent(JSON.stringify(cart));
+
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = "https://script.google.com/macros/s/AKfycbymbWR2MVfDKqKC6mgSikZ-NW0wAE0-FG1t_tXXQP7-KhC_3lpHY7kusvEPYQn01XhC/exec";
@@ -145,7 +148,7 @@
       // Add form data
       form.innerHTML = `
         <input type='hidden' name='customerName' value='${customerName}'>
-        <input type='hidden' name='cart' value='${JSON.stringify(cart)}'>
+        <input type='hidden' name='cart' value='${encodedCart}'>
         <input type='hidden' name='total' value='${document.getElementById('total').textContent}'>
         <input type='hidden' name='paymentType' value='${document.getElementById('paymentType').value}'>
       `;

@@ -75,13 +75,13 @@
 </head>
 <body>
   <div class="container">
-    <h1>Food & Merch POS 69</h1>
+    <h1>🍔 Food & Merch POS 🧋</h1>
     <div class="items-grid" id="items"></div>
     <div id="cart">
       <h2>🛒 Cart</h2>
       <div id="cart-items"></div>
       <p>Total: $<span id="total">0.00</span></p>
-      <input type="text" id="customerName" placeholder="Customer Name" required>
+      <input type="text" id="customerName" placeholder="Customer Name">
       <select id="paymentType">
         <option value="Cash">Cash</option>
         <option value="Card">Card</option>
@@ -101,6 +101,7 @@
       { name: "Gatorade", price: 2.50, image: "https://cdn-icons-png.flaticon.com/512/3183/3183496.png" },
       { name: "T-Shirt", price: 15.00, image: "https://cdn-icons-png.flaticon.com/512/3082/3082015.png" }
     ];
+
     let cart = [];
     const itemsGrid = document.getElementById('items');
     products.forEach(product => {
@@ -138,23 +139,31 @@
         return;
       }
 
-      const cartData = cart.map(item => `name=${encodeURIComponent(item.name)}&qty=${item.qty}&price=${item.price}`).join('&');
-      const totalAmount = document.getElementById('total').textContent;
+      // Collect cart data in a serialized format
+      const cartData = cart.map(item => {
+        return `name=${encodeURIComponent(item.name)}&qty=${encodeURIComponent(item.qty)}&price=${encodeURIComponent(item.price.toFixed(2))}`;
+      }).join('&');
+
+      // Collect total and payment type
+      const total = document.getElementById('total').textContent;
       const paymentType = document.getElementById('paymentType').value;
 
+      // Create the form dynamically and submit it
       const form = document.createElement('form');
       form.method = 'POST';
-      form.action = "https://script.google.com/macros/s/AKfycbwi0XrqDUsEMKALViYCbxPXHzbjawqjY7Dka736yXv1j4s2KAiD-rNiSGAtCqdfhRhU/exec";
+      form.action = 'https://script.google.com/macros/s/AKfycbwi0XrqDUsEMKALViYCbxPXHzbjawqjY7Dka736yXv1j4s2KAiD-rNiSGAtCqdfhRhU/exec'; // New URL
 
+      // Add form data as hidden fields
       form.innerHTML = `
-        <input type="hidden" name="customerName" value="${encodeURIComponent(customerName)}">
-        <input type="hidden" name="cartData" value="${encodeURIComponent(cartData)}">
-        <input type="hidden" name="total" value="${totalAmount}">
+        <input type="hidden" name="customerName" value="${customerName}">
+        <input type="hidden" name="cartData" value="${cartData}">
+        <input type="hidden" name="total" value="${total}">
         <input type="hidden" name="paymentType" value="${paymentType}">
       `;
-
+      
+      // Append the form to the document and submit it
       document.body.appendChild(form);
-      form.submit(); // Submitting form
+      form.submit();
     }
   </script>
 </body>

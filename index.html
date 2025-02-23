@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Food & Merch POS</title>
+  <title>Food & Merch POS 10000</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* Base Styles */
     :root { --primary: #007bff; }
     body {
       font-family: Arial, sans-serif;
@@ -21,8 +20,6 @@
       text-align: center;
       margin: 20px 0;
     }
-
-    /* Item Grid */
     .items-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -44,8 +41,6 @@
       object-fit: cover;
       border-radius: 5px;
     }
-
-    /* Cart */
     #cart {
       background: white;
       padding: 20px;
@@ -71,8 +66,6 @@
       border: none;
       cursor: pointer;
     }
-
-    /* Mobile Fixes */
     @media (max-width: 480px) {
       .items-grid { grid-template-columns: repeat(2, 1fr); }
       .item-card img { width: 60px; height: 60px; }
@@ -82,11 +75,7 @@
 <body>
   <div class="container">
     <h1>🍔 Food & Merch POS 🧋</h1>
-    
-    <!-- Product Grid -->
     <div class="items-grid" id="items"></div>
-    
-    <!-- Cart -->
     <div id="cart">
       <h2>🛒 Cart</h2>
       <div id="cart-items"></div>
@@ -100,7 +89,6 @@
       <button onclick="completeOrder()">Complete Order</button>
     </div>
   </div>
-
   <script>
     const products = [
       { name: "Hamburger", price: 5.00, image: "https://cdn-icons-png.flaticon.com/512/5787/5787016.png" },
@@ -111,10 +99,8 @@
       { name: "Gatorade", price: 2.50, image: "https://cdn-icons-png.flaticon.com/512/3183/3183496.png" },
       { name: "T-Shirt", price: 15.00, image: "https://cdn-icons-png.flaticon.com/512/3082/3082015.png" }
     ];
-
     let cart = [];
     const itemsGrid = document.getElementById('items');
-
     products.forEach(product => {
       const item = document.createElement('div');
       item.className = 'item-card';
@@ -123,59 +109,35 @@
         <h3>${product.name}</h3>
         <p>$${product.price.toFixed(2)}</p>
         <select class="quantity">
-          ${Array.from({ length: 10 }, (_, i) => `<option>${i + 1}</option>`).join('')}
+          ${Array.from({ length: 10 }, (_, i) => `<option>${i + 1}</option>`)}
         </select>
       `;
-      item.onclick = (event) => addToCart(product, event);
+      item.onclick = () => addToCart(product);
       itemsGrid.appendChild(item);
     });
-
-    function addToCart(product, event) {
+    function addToCart(product) {
       const qty = parseInt(event.target.closest('.item-card').querySelector('select').value);
       cart.push({ ...product, qty });
       updateCart();
     }
-
     function updateCart() {
       const cartItems = document.getElementById('cart-items');
       const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-      cartItems.innerHTML = cart.map(item => `
-        <div class="cart-item">
-          <span>${item.name} x${item.qty}</span>
-          <span>$${(item.price * item.qty).toFixed(2)}</span>
-        </div>
-      `).join('');
+      cartItems.innerHTML = cart.map(item => `<div class="cart-item"><span>${item.name} x${item.qty}</span><span>$${(item.price * item.qty).toFixed(2)}</span></div>`).join('');
       document.getElementById('total').textContent = total.toFixed(2);
     }
-
-    async function completeOrder() {
-      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbymbWR2MVfDKqKC6mgSikZ-NW0wAE0-FG1t_tXXQP7-KhC_3lpHY7kusvEPYQn01XhC/exec";
+    function completeOrder() {
       const customerName = document.getElementById('customerName').value;
       if (!customerName) {
         alert("Please enter a customer name!");
         return;
       }
-      const data = {
-        customerName,
-        paymentType: document.getElementById('paymentType').value,
-        total: parseFloat(document.getElementById('total').textContent),
-        items: cart.map(item => `${item.name} x${item.qty}`)
-      };
-      try {
-        const response = await fetch(WEB_APP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-        if (response.ok) {
-          alert("Order saved to Google Sheets! ✅");
-          cart = [];
-          updateCart();
-          document.getElementById('customerName').value = "";
-        }
-      } catch (error) {
-        alert("Error saving order. Check console.");
-      }
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = "https://script.google.com/macros/s/AKfycbymbWR2MVfDKqKC6mgSikZ-NW0wAE0-FG1t_tXXQP7-KhC_3lpHY7kusvEPYQn01XhC/exec";
+      form.innerHTML = `<input type='hidden' name='customerName' value='${customerName}'>`;
+      document.body.appendChild(form);
+      form.submit();
     }
   </script>
 </body>

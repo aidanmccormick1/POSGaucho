@@ -152,39 +152,40 @@
       document.getElementById('total').textContent = total.toFixed(2);
     }
 
-    // Complete Order
-    async function completeOrder() {
-      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbymbWR2MVfDKqKC6mgSikZ-NW0wAE0-FG1t_tXXQP7-KhC_3lpHY7kusvEPYQn01XhC/exec";
-      const customerName = document.getElementById('customerName').value;
+async function completeOrder() {
+  const PROXY_URL = "https://cors-anywhere.herokuapp.com/"; // Add this line
+  const WEB_APP_URL = "YOUR_GOOGLE_SCRIPT_URL_HERE";
+  const customerName = document.getElementById('customerName').value;
 
-      if (!customerName) {
-        alert("Please enter a customer name!");
-        return;
-      }
+  if (!customerName) {
+    alert("Please enter a customer name!");
+    return;
+  }
 
-      const data = {
-        customerName: customerName,
-        paymentType: document.getElementById('paymentType').value,
-        total: parseFloat(document.getElementById('total').textContent),
-        items: cart.map(item => `${item.name} x${item.qty}`)
-      };
+  const data = {
+    customerName: customerName,
+    paymentType: document.getElementById('paymentType').value,
+    total: parseFloat(document.getElementById('total').textContent),
+    items: cart.map(item => `${item.name} x${item.qty}`)
+  };
 
-      try {
-        const response = await fetch(WEB_APP_URL, {
-          method: 'POST',
-          body: JSON.stringify(data)
-        });
-        if (response.ok) {
-          alert("Order saved to Google Sheets! ✅");
-          cart = [];
-          updateCart();
-          document.getElementById('customerName').value = "";
-        }
-      } catch (error) {
-        alert("Error saving order. Check console for details.");
-        console.error(error);
-      }
+  try {
+    const response = await fetch(PROXY_URL + WEB_APP_URL, { // Modify this line
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }, // Add this line
+      body: JSON.stringify(data)
+    });
+    if (response.ok) {
+      alert("Order saved to Google Sheets! ✅");
+      cart = [];
+      updateCart();
+      document.getElementById('customerName').value = "";
     }
+  } catch (error) {
+    alert("Error saving order. Check console for details.");
+    console.error(error);
+  }
+}
   </script>
 </body>
 </html>

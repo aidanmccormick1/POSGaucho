@@ -152,40 +152,48 @@
       document.getElementById('total').textContent = total.toFixed(2);
     }
 
-async function completeOrder() {
-  const PROXY_URL = "https://cors-anywhere.herokuapp.com/"; // Add this line
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbymbWR2MVfDKqKC6mgSikZ-NW0wAE0-FG1t_tXXQP7-KhC_3lpHY7kusvEPYQn01XhC/exec";
-  const customerName = document.getElementById('customerName').value;
+    // Complete Order
+    async function completeOrder() {
+      const PROXY_URL = "https://cors-anywhere.herokuapp.com/"; // Proxy to bypass CORS
+      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbymbWR2MVfDKqKC6mgSikZ-NW0wAE0-FG1t_tXXQP7-KhC_3lpHY7kusvEPYQn01XhC/exec"; // Your Google Apps Script URL
+      const customerName = document.getElementById('customerName').value;
 
-  if (!customerName) {
-    alert("Please enter a customer name!");
-    return;
-  }
+      // Validate customer name
+      if (!customerName) {
+        alert("Please enter a customer name!");
+        return;
+      }
 
-  const data = {
-    customerName: customerName,
-    paymentType: document.getElementById('paymentType').value,
-    total: parseFloat(document.getElementById('total').textContent),
-    items: cart.map(item => `${item.name} x${item.qty}`)
-  };
+      // Prepare data to send
+      const data = {
+        customerName: customerName,
+        paymentType: document.getElementById('paymentType').value,
+        total: parseFloat(document.getElementById('total').textContent),
+        items: cart.map(item => `${item.name} x${item.qty}`)
+      };
 
-  try {
-    const response = await fetch(PROXY_URL + WEB_APP_URL, { // Modify this line
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }, // Add this line
-      body: JSON.stringify(data)
-    });
-    if (response.ok) {
-      alert("Order saved to Google Sheets! ✅");
-      cart = [];
-      updateCart();
-      document.getElementById('customerName').value = "";
+      try {
+        // Send data to Google Apps Script via proxy
+        const response = await fetch(PROXY_URL + WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        // Handle response
+        if (response.ok) {
+          alert("Order saved to Google Sheets! ✅");
+          cart = []; // Clear cart
+          updateCart(); // Update UI
+          document.getElementById('customerName').value = ""; // Reset customer name
+        } else {
+          console.error("Response not OK:", await response.text());
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Error saving order. Check console for details.");
+      }
     }
-  } catch (error) {
-    alert("Error saving order. Check console for details.");
-    console.error(error);
-  }
-}
   </script>
 </body>
 </html>

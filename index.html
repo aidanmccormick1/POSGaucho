@@ -1,104 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food & Merch POS</title>
-    <style>
-        :root { --primary: #007bff; }
-        body {
-            font-family: Arial, sans-serif;
-            background: #f0f8ff;
-            margin: 0;
-            padding: 15px;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        h1 { 
-            color: var(--primary);
-            text-align: center;
-            margin: 20px 0;
-        }
-        .items-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-        }
-        .item-card {
-            background: white;
-            border-radius: 10px;
-            padding: 10px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .item-card:hover { transform: translateY(-3px); }
-        .item-card img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 5px;
-        }
-        #cart {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 10px 0;
-        }
-        select, input, button {
-            width: 100%;
-            padding: 8px;
-            margin: 5px 0;
-            border: 1px solid var(--primary);
-            border-radius: 5px;
-        }
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        @media (max-width: 480px) {
-            .items-grid { grid-template-columns: repeat(2, 1fr); }
-            .item-card img { width: 60px; height: 60px; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food & Merch POS</title>
+  <style>
+    :root { --primary: #007bff; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      margin: 0;
+      padding: 15px;
+    }
+    .container { max-width: 800px; margin: auto; }
+    h1 { text-align: center; color: var(--primary); }
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+    }
+    .item-card {
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .item-card:hover { transform: translateY(-3px); }
+    .item-card img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+    #cart {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+    }
+    select, input, button {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      border: 1px solid var(--primary);
+      border-radius: 5px;
+    }
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    @media (max-width: 480px) {
+      .items-grid { grid-template-columns: repeat(2, 1fr); }
+      .item-card img { width: 60px; height: 60px; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🍔 Food & Merch POS 🧋</h1>
-        <div class="items-grid" id="items"></div>
-        <div id="cart">
-            <h2>🛒 Cart</h2>
-            <div id="cart-items"></div>
-            <p>Total: $<span id="total">0.00</span></p>
-            <input type="text" id="customerName" placeholder="Customer Name">
-            <select id="paymentType">
-                <option value="Cash">Cash</option>
-                <option value="Card">Card</option>
-                <option value="Venmo">Venmo</option>
-            </select>
-            <button id="completeOrderBtn">Complete Order</button>
-        </div>
+  <div class="container">
+    <h1>🍔 Food & Merch POS 🧋</h1>
+    <div class="items-grid" id="items"></div>
+    <div id="cart">
+      <h2>🛒 Cart</h2>
+      <div id="cart-items"></div>
+      <p>Total: $<span id="total">0.00</span></p>
+      <input type="text" id="customerName" placeholder="Customer Name">
+      <select id="paymentType">
+        <option value="Cash">Cash</option>
+        <option value="Card">Card</option>
+        <option value="Venmo">Venmo</option>
+      </select>
+      <button onclick="completeOrder()">Complete Order</button>
     </div>
+  </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js"></script>
+  <!-- Firebase SDK -->
+  <script type="module">
+    // Import Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
 
-    <!-- Your custom JavaScript -->
-    <script src="script.js"></script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDJ6kmI4bf6KzNkozcs-RjIXHJo3KUXIo",
+      authDomain: "gaucho-pos.firebaseapp.com",
+      projectId: "gaucho-pos",
+      storageBucket: "gaucho-pos.firebasestorage.app",
+      messagingSenderId: "681774695759",
+      appId: "1:681774695759:web:f80e4a38b1ace2fb15313a"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Products
+    const products = [
+      { name: "Hamburger", price: 5.00, image: "https://cdn-icons-png.flaticon.com/512/5787/5787016.png" },
+      { name: "Hot Dog", price: 3.00, image: "https://cdn-icons-png.flaticon.com/512/2718/2718274.png" },
+      { name: "Water", price: 1.00, image: "https://cdn-icons-png.flaticon.com/512/3209/3209898.png" },
+      { name: "Sprite", price: 2.00, image: "https://cdn-icons-png.flaticon.com/512/4385/4385588.png" },
+      { name: "Diet Coke", price: 2.00, image: "https://cdn-icons-png.flaticon.com/512/4385/4385558.png" },
+      { name: "Gatorade", price: 2.50, image: "https://cdn-icons-png.flaticon.com/512/3183/3183496.png" },
+      { name: "T-Shirt", price: 15.00, image: "https://cdn-icons-png.flaticon.com/512/3082/3082015.png" }
+    ];
+
+    let cart = [];
+    const itemsGrid = document.getElementById('items');
+
+    products.forEach(product => {
+      const item = document.createElement('div');
+      item.className = 'item-card';
+      item.innerHTML = `
+        <img src="${product.image}" alt="${product.name}">
+        <h3>${product.name}</h3>
+        <p>$${product.price.toFixed(2)}</p>
+        <select class="quantity">
+          ${Array.from({ length: 10 }, (_, i) => `<option>${i + 1}</option>`)}
+        </select>
+      `;
+      item.onclick = () => addToCart(product);
+      itemsGrid.appendChild(item);
+    });
+
+    function addToCart(product) {
+      const qty = parseInt(event.target.closest('.item-card').querySelector('select').value);
+      cart.push({ ...product, qty });
+      updateCart();
+    }
+
+    function updateCart() {
+      const cartItems = document.getElementById('cart-items');
+      const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      cartItems.innerHTML = cart.map(item => `<div>${item.name} x${item.qty} - $${(item.price * item.qty).toFixed(2)}</div>`).join('');
+      document.getElementById('total').textContent = total.toFixed(2);
+    }
+
+    async function completeOrder() {
+      const customerName = document.getElementById('customerName').value;
+      const paymentType = document.getElementById('paymentType').value;
+      const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0).toFixed(2);
+
+      if (!customerName) {
+        alert("Please enter a customer name!");
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "orders"), {
+          customerName: customerName,
+          cart: cart,
+          total: total,
+          paymentType: paymentType,
+          timestamp: serverTimestamp()
+        });
+        alert("Order submitted!");
+        cart = [];
+        updateCart();
+      } catch (error) {
+        console.error("Error saving order: ", error);
+      }
+    }
+  </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <script>
         }
 // Import Firebase SDK

@@ -80,13 +80,21 @@
         <option value="Card">Card</option>
         <option value="Venmo">Venmo</option>
       </select>
-      <button onclick="completeOrder()">Complete Order</button>
+      <button id="completeOrderBtn">Complete Order</button>
     </div>
   </div>
 
+
+
+
+
+
+
+
+
+  
   <!-- Firebase SDK -->
   <script type="module">
-    // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
     import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
 
@@ -104,7 +112,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Products
+    // Product Data
     const products = [
       { name: "Hamburger", price: 5.00, image: "https://cdn-icons-png.flaticon.com/512/5787/5787016.png" },
       { name: "Hot Dog", price: 3.00, image: "https://cdn-icons-png.flaticon.com/512/2718/2718274.png" },
@@ -116,8 +124,51 @@
     ];
 
     let cart = [];
-    const itemsGrid = document.getElementById('items');
 
+    function addToCart(product) {
+      const qty = parseInt(event.target.closest('.item-card').querySelector('select').value);
+      cart.push({ ...product, qty });
+      updateCart();
+    }
+
+    function updateCart() {
+      const cartItems = document.getElementById('cart-items');
+      const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      cartItems.innerHTML = cart.map(item => `<div class="cart-item"><span>${item.name} x${item.qty}</span><span>$${(item.price * item.qty).toFixed(2)}</span></div>`).join('');
+      document.getElementById('total').textContent = total.toFixed(2);
+    }
+
+    async function completeOrder() {
+      const customerName = document.getElementById('customerName').value;
+      const paymentType = document.getElementById('paymentType').value;
+
+      if (!customerName) {
+        alert("Please enter a customer name!");
+        return;
+      }
+      if (cart.length === 0) {
+        alert("Cart is empty!");
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "orders"), {
+          customerName,
+          cart,
+          total: cart.reduce((sum, item) => sum + item.price * item.qty, 0),
+          paymentType,
+          timestamp: serverTimestamp()
+        });
+        alert("✅ Order submitted!");
+        cart = [];
+        updateCart();
+      } catch (error) {
+        console.error("❌ Error saving order: ", error);
+      }
+    }
+
+    // Add products to the grid
+    const itemsGrid = document.getElementById('items');
     products.forEach(product => {
       const item = document.createElement('div');
       item.className = 'item-card';
@@ -133,159 +184,7 @@
       itemsGrid.appendChild(item);
     });
 
-    function addToCart(product) {
-      const qty = parseInt(event.target.closest('.item-card').querySelector('select').value);
-      cart.push({ ...product, qty });
-      updateCart();
-    }
-
-    function updateCart() {
-      const cartItems = document.getElementById('cart-items');
-      const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-      cartItems.innerHTML = cart.map(item => `<div>${item.name} x${item.qty} - $${(item.price * item.qty).toFixed(2)}</div>`).join('');
-      document.getElementById('total').textContent = total.toFixed(2);
-    }
-
-    async function completeOrder() {
-      const customerName = document.getElementById('customerName').value;
-      const paymentType = document.getElementById('paymentType').value;
-      const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0).toFixed(2);
-
-      if (!customerName) {
-        alert("Please enter a customer name!");
-        return;
-      }
-
-      try {
-        await addDoc(collection(db, "orders"), {
-          customerName: customerName,
-          cart: cart,
-          total: total,
-          paymentType: paymentType,
-          timestamp: serverTimestamp()
-        });
-        alert("Order submitted!");
-        cart = [];
-        updateCart();
-      } catch (error) {
-        console.error("Error saving order: ", error);
-      }
-    }
+    document.getElementById("completeOrderBtn").addEventListener("click", completeOrder);
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<script>
-        }
-// Import Firebase SDK
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
-
-// Your Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyDDJ6kmI4bf6KzNkozcs-RjIXHJo3KUXIo",
-    authDomain: "gaucho-pos.firebaseapp.com",
-    projectId: "gaucho-pos",
-    storageBucket: "gaucho-pos.firebasestorage.app",
-    messagingSenderId: "681774695759",
-    appId: "1:681774695759:web:f80e4a38b1ace2fb15313a"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// Product data
-const products = [
-    { name: "Hamburger", price: 5.00, image: "https://cdn-icons-png.flaticon.com/512/5787/5787016.png" },
-    { name: "Hot Dog", price: 3.00, image: "https://cdn-icons-png.flaticon.com/512/2718/2718274.png" },
-    { name: "Water", price: 1.00, image: "https://cdn-icons-png.flaticon.com/512/3209/3209898.png" },
-    { name: "Sprite", price: 2.00, image: "https://cdn-icons-png.flaticon.com/512/4385/4385588.png" },
-    { name: "Diet Coke", price: 2.00, image: "https://cdn-icons-png.flaticon.com/512/4385/4385558.png" },
-    { name: "Gatorade", price: 2.50, image: "https://cdn-icons-png.flaticon.com/512/3183/3183496.png" },
-    { name: "T-Shirt", price: 15.00, image: "https://cdn-icons-png.flaticon.com/512/3082/3082015.png" }
-];
-
-let cart = [];
-
-// Function to add products to cart
-function addToCart(product) {
-    const qty = parseInt(event.target.closest('.item-card').querySelector('select').value);
-    cart.push({ ...product, qty });
-    updateCart();
-}
-
-// Update cart UI
-function updateCart() {
-    const cartItems = document.getElementById('cart-items');
-    const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    cartItems.innerHTML = cart.map(item => `<div class="cart-item"><span>${item.name} x${item.qty}</span><span>$${(item.price * item.qty).toFixed(2)}</span></div>`).join('');
-    document.getElementById('total').textContent = total.toFixed(2);
-}
-
-// Function to complete the order
-async function completeOrder() {
-    const customerName = document.getElementById('customerName').value;
-    const paymentType = document.getElementById('paymentType').value;
-
-    if (!customerName) {
-        alert("Please enter a customer name!");
-        return;
-    }
-    if (cart.length === 0) {
-        alert("Cart is empty!");
-        return;
-    }
-
-    try {
-        await addDoc(collection(db, "orders"), {
-            customerName,
-            cart,
-            total: cart.reduce((sum, item) => sum + item.price * item.qty, 0),
-            paymentType,
-            timestamp: serverTimestamp()
-        });
-        alert("✅ Order submitted!");
-        cart = [];
-        updateCart();
-    } catch (error) {
-        console.error("❌ Error saving order: ", error);
-    }
-}
-
-// Add product items to the grid
-const itemsGrid = document.getElementById('items');
-products.forEach(product => {
-    const item = document.createElement('div');
-    item.className = 'item-card';
-    item.innerHTML = `
-        <img src="${product.image}" alt="${product.name}">
-        <h3>${product.name}</h3>
-        <p>$${product.price.toFixed(2)}</p>
-        <select class="quantity">
-            ${Array.from({ length: 10 }, (_, i) => `<option>${i + 1}</option>`)}
-        </select>
-    `;
-    item.onclick = () => addToCart(product);
-    itemsGrid.appendChild(item);
-});
-
-// Add event listener to the button
-document.addEventListener("DOMContentLoaded", function () {
-    document.getElementById("completeOrderBtn").addEventListener("click", completeOrder);
-});
-</script>
